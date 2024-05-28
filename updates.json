@@ -1,0 +1,12 @@
+{
+    "games": {
+        "SDDT": {
+            "latest_version": "1.45.4",
+            "update_url": "http://localhost:5000/opt/SDDT/1.45.4/update.zip"
+        },
+        "game2": {
+            "latest_version": "2.3.4",
+            "update_url": "http://example.com//update.zip"
+        }
+    }
+}
