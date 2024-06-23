@@ -1,35 +1,45 @@
-from flask import Flask, request, jsonify
 import json
+import semver
+from flask import Flask, request, jsonify
 
 app = Flask(__name__)
 
-# updates.jsonファイルを読み込む関数
-def load_updates():
-    with open('updates.json', 'r') as file:
-        return json.load(file)
+# updates.json ファイルを読み込む関数
+def load_version_info():
+    with open('updates.json') as f:
+        return json.load(f)
 
 @app.route('/check_update', methods=['POST'])
 def check_update():
     data = request.json
-    game_title = data.get('game_title')
-    current_version = data.get('current_version')
+    game_name = data.get('game_name')
+    client_version = data.get('version')
+    request_hash = data.get('request_hash', False)
+    
+    if not game_name or not client_version:
+        return jsonify({"error": "game_name and version are required"}), 400
 
-    if not game_title or not current_version:
-        return jsonify({"error": "game_title and current_version are required"}), 400
+    version_info = load_version_info()
 
-    updates = load_updates()
-    game_info = updates.get('games', {}).get(game_title)
-
+    game_info = version_info.get(game_name)
     if not game_info:
         return jsonify({"error": "Game not found"}), 404
 
-    latest_version = game_info.get('latest_version')
-    update_url = game_info.get('update_url')
+    latest_version = game_info["latest_version"]
+    update_url = game_info["update_url"]
+    update_hash = game_info.get("update_hash", "")
 
-    if current_version == latest_version:
-        return jsonify({"message": "No update needed"})
+    if semver.compare(client_version, latest_version) < 0:
+        response = {
+            "update_needed": True,
+            "latest_version": latest_version,
+            "update_url": update_url
+        }
+        if request_hash:
+            response["update_hash"] = update_hash
+        return jsonify(response)
     else:
-        return jsonify({"latest_version": latest_version, "update_url": update_url})
+        return jsonify({"update_needed": False})
 
 if __name__ == '__main__':
     app.run(debug=True)
