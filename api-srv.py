@@ -12,12 +12,12 @@ def load_version_info():
 @app.route('/check_update', methods=['POST'])
 def check_update():
     data = request.json
-    game_name = data.get('game_name')
-    client_version = data.get('version')
+    game_name = data.get('game_title')  # 'game_name' から 'game_title' に変更
+    client_version = data.get('current_version')  # 'version' から 'current_version' に変更
     request_hash = data.get('request_hash', False)
     
     if not game_name or not client_version:
-        return jsonify({"error": "game_name and version are required"}), 400
+        return jsonify({"error": "game_title and current_version are required"}), 400
 
     version_info = load_version_info()
 
